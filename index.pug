@@ -1,0 +1,41 @@
+doctype html
+html(lang='eng')
+	head
+		meta(charset='utf-8')
+		meta(name='viewport' content='width=device-width, initial-scale=1.0')
+		title=pagename
+		link(rel='stylesheet' href='main.css')
+	body
+		h1 #{pagename} - Free Code Camp
+		div
+			h2 User Stories
+			ul
+				li.
+					I can pass a URL as a parameter and I will receive a 
+					shortened URL in the JSON response.
+				li.
+					If I pass an invalid URL that doesn't follow the valid 
+					http://www.example.com format, the JSON response will
+					contain an error instead.
+				li.
+					When I visit that shortened URL, it will redirect me to my
+					original link.
+		div.examples
+			h2 Examples
+			ul
+				li #{url}/new/www.google.com
+				li #{url}/new/www.freecodecamp.com
+		div.instructions
+			h2 Instructions
+			ul
+				li.
+					You can copy a link from the example a put it on the site url of 
+					your browser original
+				li.
+					Or you can write the only the link you want to short it
+		div.input
+			form(method='get' action='new')
+				p Link 
+					input(type='text' name='link' required)
+					button(type='submit') Submit
+	

@@ -1,0 +1,15 @@
+h1 {
+    text-align: center;
+    border-bottom: solid black 2px;
+    box-shadow:  green 3px 2px 3px;
+    padding: 5px;
+}
+div {
+    max-width: 500px;
+    margin: auto;
+    padding: 10px;
+    text-align: justify;
+}
+.examples li {
+    color: green;
+}
