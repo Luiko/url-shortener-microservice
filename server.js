@@ -14,6 +14,44 @@ app.use(express.static(__dirname + '/public'));
 app.get('/', (_, res) => res.send(page));
 
 const urlparser = /^(https?:[\\\/]+)?([^\/\\]+)/;
+
+app.get('/new', (req, res) => {
+    let query = req.query;
+    if (!Object.keys(query).length) return res.send({ error: 'no link sent' });
+
+    handleNewUrl(res, query.link);
+});
+app.get('/new/:link', (req, res) => {
+    let link = req.params.link;
+    if (!link) return res.status(400).send.json({ error: 'link required' });
+
+    handleNewUrl(res, link);
+});
+app.all(/\/new\/(.)/, (req, res) => {
+    const regexp = /\/new\/https?:\/\//;
+    if (!regexp.test(req.path)) return res.status(400).json({ error: 'path not found' });
+    let link = req.path.replace(regexp, '');
+    handleNewUrl(res, link);
+});
+app.get('/:shortlink', (req, res) => {
+    let link = req.params.shortlink;
+    if (!link) return;
+    DB.takeDocument({ 'short url': link }).then(doc => {
+        try {
+            const url = doc['original url'];
+            let http = /https?:\/\//.test(url)? url: 'http://' + url;
+            if (doc) res.status(302).redirect(http);
+            else res.status(404).json({ error: 'not found' });
+        }
+        catch (err) {
+            res.status(404).json({ error: 'not found' });
+        }
+    });
+});
+app.listen(app.get('port'),
+    () => console.log('Server listening in port ' + app.get('port'))
+);
+
 function parseUrl(link) {
     let urlarr = [];
     let options = {};
@@ -73,39 +111,3 @@ function handleNewUrl(res, link) {
         else res.json({ error: 'server problems ' + err.message });
     });
 }
-app.get('/new', (req, res) => {
-    let query = req.query;
-    if (!Object.keys(query).length) return res.send({ error: 'no link sent' });
-
-    handleNewUrl(res, query.link);
-});
-app.get('/new/:link', (req, res) => {
-    let link = req.params.link;
-    if (!link) return res.send.json({ error: 'link param no found' });
-
-    handleNewUrl(res, link);
-});
-app.all(/\/new\/(.)/, (req, res) => {
-    const regexp = /\/new\/https?:\/\//;
-    if (!regexp.test(req.path)) return res.status(404).json({ error: 'path not found' });
-    let link = req.path.replace(regexp, '');
-    handleNewUrl(res, link);
-});
-app.get('/:shortlink', (req, res) => {
-    let link = req.params.shortlink;
-    if (!link) return;
-    DB.takeDocument({ 'short url': link }).then(doc => {
-        try {
-            const url = doc['original url'];
-            let http = /https?:\/\//.test(url)? url: 'http://' + url;
-            if (doc) res.status(302).redirect(http);
-            else res.json({ error: 'not found' });
-        }
-        catch (err) {
-            res.json({ error: 'not found' });
-        }
-    });
-});
-app.listen(app.get('port'),
-    () => console.log('Server listening in port ' + app.get('port'))
-);
