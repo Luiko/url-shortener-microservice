@@ -3,7 +3,7 @@ module.exports = function () {
     return {
         toShort: function (link) {
             let n = link.split('').reduce((sum, val) => sum + val.charCodeAt(0), 0);
-            return toHex(n) + 
+            return 'https://url-shortener0.herokuapp.com/' + toHex(n) + 
                 toHex(Math.floor(Math.random() * 100 * n))
             ;
         },

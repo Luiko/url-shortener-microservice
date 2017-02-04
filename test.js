@@ -1,10 +1,9 @@
 const tape = require('tape');
 const request = require('request');
-const conv = require('./convert-links.js');
 const DB = require('./database.js');
 
 //insert this in databe before testing
-//{ "original url" : "www.freecodecamp.com", "short url" : "7de23395" }
+//{ "original url" : "www.freecodecamp.com", "short url" : "https://url-shortener0.herokuapp.com/7de23395" }
 
 const url = 'https://url-shortener0.herokuapp.com/';
 tape('testin server requests', t => {
@@ -25,14 +24,6 @@ function testRequest(url, testCallback) {
     });
 }
 
-const page = 'www.google.com';
-tape('testing conv-links module', t => {
-    t.plan(1);
-    let shortUrl = conv.toShort(page);
-    let isHex = /^[0123456789abcdef]+$/;
-    t.assert(isHex.test(shortUrl), 'short-url is hexadecimal string');
-});
-
 tape('testing mongo database collections', t => {
     t.plan(3);
     DB.connectDB((db, err) => {
@@ -45,6 +36,8 @@ tape('testing mongo database collections', t => {
         }).catch(console.error).then(() => db.close());
     });
 });
+
+const page = 'www.google.com';
 const page2 = { 'original url': 'www.page.com' };
 tape('testing mongo database procedures', t => {
     t.plan(3);
@@ -65,7 +58,7 @@ tape('testing mongo database procedures', t => {
     });
 });
 tape('testing procedures with requests', t => {
-    t.plan(19);
+    t.plan(13);
     testRequest(url + 'new?link=' + page, (response, body) => {
         if (!body) return;
         let obj = JSON.parse(body);
@@ -120,38 +113,12 @@ tape('testing procedures with requests', t => {
     });
 
     const shortlinkStored = '7de23395';
-    const urlStored = 'www.freecodecamp.com';
-    testRequest(url + shortlinkStored, (response, body) => {
-        try {
-            var obj = JSON.parse(body);
-        } catch (err) {
-            return console.error(err);
-        }
-        t.assert(response.headers['content-type'].match('application/json'),
-            'get /new/:link return json');
-        t.equal(obj['original url'], urlStored,
-            'Json field original url expected');
-        t.equal(obj['short url'], shortlinkStored,
-            'Json field short url expected');
-        t.equal(Object.keys(obj).length, 2,
-            'Json length expected');
-    });
-    testRequest(url + '0000000', (response, body) => {
-        try {
-            var obj = JSON.parse(body);
-        } catch (err) {
-            return console.error(err);
-        }
-        t.assert(response.headers['content-type'].match('application/json'),
-            'get /new/:link return json');
-        t.equal(obj.error, 'not found',
-            'Json field error expected');
-        t.equal(Object.keys(obj).length, 1,
-            'Json length expected');
+    testRequest(url + shortlinkStored, (response) => {
+        t.equal(response.statusCode, 302, 'Redirected to normal url');
     });
 });
 tape('testing requests with bads urls', t => {
-    t.plan(4);
+    t.plan(7);
     testRequest(url + 'new/' + 'www.fakewebpage404notfound.com'
         , (response, body) => {
         t.assert(response.headers['content-type']
@@ -167,5 +134,18 @@ tape('testing requests with bads urls', t => {
             'get /new/:link return json with fake url');
         t.equal(JSON.parse(body).error, 'path not found',
             'error message expected: path not found');
+    });
+    testRequest(url + '0000000', (response, body) => {
+        try {
+            var obj = JSON.parse(body);
+        } catch (err) {
+            return console.error(err);
+        }
+        t.assert(response.headers['content-type'].match('application/json'),
+            'get /new/:link return json');
+        t.equal(obj.error, 'not found',
+            'Json field error expected');
+        t.equal(Object.keys(obj).length, 1,
+            'Json length expected');
     });
 });
