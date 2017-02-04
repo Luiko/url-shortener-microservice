@@ -93,6 +93,7 @@ app.all(/\/new\/(.)/, (req, res) => {
 });
 app.get('/:shortlink', (req, res) => {
     let link = req.params.shortlink;
+    if (!link) return;
     DB.takeDocument({ 'short url': link }).then(doc => {
         if (doc) res.json(doc);
         else res.json({ error: 'not found' });
