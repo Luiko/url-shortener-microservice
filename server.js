@@ -95,7 +95,9 @@ app.get('/:shortlink', (req, res) => {
     let link = req.params.shortlink;
     if (!link) return;
     DB.takeDocument({ 'short url': link }).then(doc => {
-        if (doc) res.json(doc);
+        const url = doc['original url'];
+        let http = /https?:\/\//.test(url)? url: 'http://' + url;
+        if (doc) res.status(302).redirect(http);
         else res.json({ error: 'not found' });
     });
 });
